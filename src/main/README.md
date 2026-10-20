@@ -1,0 +1,10 @@
+Task2:
+Why does making only increment() synchronized but not get() still leave a bug?
+It leaves a memory visibility bug. In modern computers, threads often cache shared variables in local CPU registers for faster access. The synchronized keyword does two things: it prevents simultaneous execution (mutual exclusion) AND it forces the thread to flush its local cache and read the freshest value from main memory. If you only synchronize increment() but leave get() unsynchronized, a thread calling get() is not forced to fetch the latest value. It might just return a stale, outdated number from its local CPU cache, completely ignoring the updates made by the other threads.
+
+Task3:
+Changing while to if (The "Spurious Wakeup" Bug):
+When changing the while loop to an if statement, the program will occasionally crash with exceptions like NoSuchElementException or overfill the buffer. When a waiting thread wakes up, it immediately proceeds to execute without re-checking the condition. Because thread scheduling is unpredictable, another thread might have jumped in and snatched the item (or filled the space) between the time the thread was awakened and the time it actually resumed executing. The while loop is strictly necessary to force the thread to re-verify the condition before modifying the buffer.
+
+Changing notifyAll() to notify() (The Deadlock Bug):
+When changing notifyAll() to notify(), the program will eventually freeze (deadlock) if run multiple times. notify() only wakes up one randomly chosen thread. If a Producer adds an item to the buffer and calls notify(), it might accidentally wake up another Producer instead of a Consumer. Seeing the buffer is full, the awakened Producer goes back to wait. Now, all Consumers might be asleep waiting for items, and all Producers are asleep waiting for space. Because the wake-up signal was sent to the wrong type of thread, the entire system halts permanently.
